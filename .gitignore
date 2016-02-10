@@ -22,6 +22,9 @@ build
 # 
 
 # 
+res/xml/api_info.xml
+
+# 
 project.properties
 proguard-project.txt
 assets/
@@ -31,6 +34,7 @@ assets/
 *.ap_
 *.jar
 !gradle/wrapper/gradle-wrapper.jar
+!libs/*.jar
 
 # lint folder
 lint

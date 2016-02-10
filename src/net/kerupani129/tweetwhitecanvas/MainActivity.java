@@ -1,9 +1,13 @@
 package net.kerupani129.tweetwhitecanvas;
 
+import java.util.Map;
+
 import android.app.Activity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import net.kerupani129.tweetwhitecanvas.util.ResourceUtil;
 
 public class MainActivity extends Activity {
 
@@ -11,6 +15,20 @@ public class MainActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+
+		//
+		try {
+
+			Map<String, String> map = ResourceUtil.getStringMapFromXml(getResources(), R.xml.api_info);
+
+			for (Map.Entry<String, String> entry : map.entrySet()) {
+				Log.i("MainActivity", entry.getKey() + " : " + entry.getValue());
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
 	}
 
 	@Override
