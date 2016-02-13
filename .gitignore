@@ -34,7 +34,7 @@ assets/
 *.ap_
 *.jar
 !gradle/wrapper/gradle-wrapper.jar
-!libs/*.jar
+!libs/**/*.jar
 
 # lint folder
 lint

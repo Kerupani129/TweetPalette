@@ -7,6 +7,7 @@ import java.util.Map;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
+import android.content.Context;
 import android.content.res.Resources;
 import android.content.res.XmlResourceParser;
 
@@ -23,8 +24,9 @@ public class ResourceUtil {
 	 * @throws IOException
 	 * @throws XmlPullParserException
 	 */
-	public static Map<String, String> getStringMapFromXml(Resources res, int id) throws XmlPullParserException, IOException {
+	public static Map<String, String> getStringMapFromXml(Context context, int id) throws XmlPullParserException, IOException {
 
+		Resources res = context.getResources();
 		XmlResourceParser xpp = res.getXml(id);
 
         int eventType = xpp.getEventType();

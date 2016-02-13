@@ -2,7 +2,12 @@
 <resources>
 
     <string name="app_name">TweetWhiteCanvas</string>
-    <string name="hello_world">Hello world!</string>
-    <string name="action_settings">Settings</string>
+
+    <string name="twitter_callback_url">twitter://callback</string>
+
+    <string name="activity_main_hello_world">Hello world!</string>
+    <string name="menu_main_settings">Settings</string>
+
+    <string name="activity_twitter_oauth_start_oauth">Twitter 認証</string>
 
 </resources>
