@@ -6,8 +6,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import net.kerupani129.tweetwhitecanvas.R;
-import twitter4j.Twitter;
-import twitter4j.TwitterFactory;
+import twitter4j.AsyncTwitter;
+import twitter4j.AsyncTwitterFactory;
 import twitter4j.auth.AccessToken;
 
 public class TwitterUtil {
@@ -18,12 +18,10 @@ public class TwitterUtil {
     private static final String PREF_NAME = "twitter_access_token";
 
     /**
-     * Twitterインスタンスを取得します。アクセストークンが保存されていれば自動的にセットします。
-     *
-     * @param context
-     * @return
+     * AsyncTwitter インスタンス 取得
+	 * アクセストークンが保存されていたら自動的にセット
      */
-    public static Twitter getTwitterInstance(Context context) {
+    public static AsyncTwitter getAsyncTwitterInstance(Context context) {
 
 		// API 情報取得
     	String api_key;
@@ -41,8 +39,8 @@ public class TwitterUtil {
 		}
 
 		// 認証
-		TwitterFactory factory = new TwitterFactory();
-        Twitter twitter = factory.getInstance();
+		AsyncTwitterFactory factory = new AsyncTwitterFactory();
+		AsyncTwitter twitter = factory.getInstance();
         twitter.setOAuthConsumer(api_key, api_secret);
 
         if (hasAccessToken(context)) {

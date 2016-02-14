@@ -3,23 +3,24 @@ package net.kerupani129.tweetwhitecanvas;
 import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 import net.kerupani129.tweetwhitecanvas.util.TwitterUtil;
-import twitter4j.Twitter;
-import twitter4j.TwitterException;
+import twitter4j.AsyncTwitter;
+import twitter4j.TwitterAdapter;
 import twitter4j.auth.AccessToken;
 import twitter4j.auth.RequestToken;
 
 public class TwitterOAuthActivity extends Activity {
 
 	// 変数
+	private Handler mHandler = new Handler();
     private String mCallbackURL;
-    private Twitter mTwitter;
+    private AsyncTwitter mTwitter;
     private RequestToken mRequestToken;
 
 	/**
@@ -28,18 +29,54 @@ public class TwitterOAuthActivity extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 
+    	showToast("testToast");
+
 		// 表示
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_twitter_oauth);
 
         mCallbackURL = getString(R.string.twitter_callback_url);
-        mTwitter = TwitterUtil.getTwitterInstance(this);
+        mTwitter = TwitterUtil.getAsyncTwitterInstance(this);
+        mTwitter.addListener(new TwitterAdapter() {
+
+            @Override
+            public void gotOAuthRequestToken(RequestToken token) {
+            	mRequestToken = token;
+            	String url = mRequestToken.getAuthorizationURL();
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                startActivity(intent);
+            }
+
+            @Override
+            public void gotOAuthAccessToken(AccessToken token) {
+                if (token != null) {
+                	mHandler.post(new Runnable() {
+                		@Override
+                		public void run() {
+                	        showToast("認証成功");
+                		}
+                	});
+                	succeededOAuth(token);
+                } else {
+                	mHandler.post(new Runnable() {
+                		@Override
+                		public void run() {
+                	        showToast("認証失敗。もう一度お試しください");
+                		}
+                	});
+                	failedOAuth();
+                }
+            }
+
+        });
 
         findViewById(R.id.action_start_oauth).setOnClickListener(new View.OnClickListener() {
+
             @Override
             public void onClick(View v) {
-                startAuthorize();
+            	mTwitter.getOAuthRequestTokenAsync(mCallbackURL);
             }
+
         });
 
 	}
@@ -82,81 +119,39 @@ public class TwitterOAuthActivity extends Activity {
 	}
 
     /**
-     * OAuth 認証 (認可) 開始
-     */
-    private void startAuthorize() {
-
-        AsyncTask<Void, Void, String> task = new AsyncTask<Void, Void, String>() {
-            @Override
-            protected String doInBackground(Void... params) {
-                try {
-                    mRequestToken = mTwitter.getOAuthRequestToken(mCallbackURL);
-                    return mRequestToken.getAuthorizationURL();
-                } catch (TwitterException e) {
-                    e.printStackTrace();
-                }
-                return null;
-            }
-
-            @Override
-            protected void onPostExecute(String url) {
-                if (url != null) {
-                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                    startActivity(intent);
-                } else {
-                    // 失敗
-                }
-            }
-        };
-        task.execute();
-
-    }
-
-    /**
      * インテント生成時
      */
     @Override
     public void onNewIntent(Intent intent) {
-        if (intent == null || intent.getData() == null || !intent.getData().toString().startsWith(mCallbackURL)) {
+
+        if (!intent.getData().toString().startsWith(mCallbackURL)) {
             return;
         }
-        String verifier = intent.getData().getQueryParameter("oauth_verifier");
 
-        AsyncTask<String, Void, AccessToken> task = new AsyncTask<String, Void, AccessToken>() {
-            @Override
-            protected AccessToken doInBackground(String... params) {
-                try {
-                    return mTwitter.getOAuthAccessToken(mRequestToken, params[0]);
-                } catch (TwitterException e) {
-                    e.printStackTrace();
-                }
-                return null;
-            }
+        // ブラウザからのコールバックで呼ばれる
+        final Uri uri = intent.getData();
+        final String verifier = uri.getQueryParameter("oauth_verifier");
+        if (verifier != null) {
+            mTwitter.getOAuthAccessTokenAsync(mRequestToken, verifier);
+        }
 
-            @Override
-            protected void onPostExecute(AccessToken accessToken) {
-                if (accessToken != null) {
-                    // 認証成功
-                    showToast("認証成功");
-                    successOAuth(accessToken);
-                } else {
-                    // 認証失敗。。。
-                    showToast("認証失敗");
-                }
-            }
-        };
-        task.execute(verifier);
     }
 
     /**
      * 認証成功時
      */
-    private void successOAuth(AccessToken accessToken) {
+    private void succeededOAuth(AccessToken accessToken) {
         TwitterUtil.storeAccessToken(this, accessToken);
         Intent intent = new Intent(this, MainActivity.class);
         startActivity(intent);
         finish();
+
     }
+
+    /**
+     * 認証失敗時
+     */
+    private void failedOAuth() {}
 
     /**
      * Toast 表示
